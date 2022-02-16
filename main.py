@@ -13,7 +13,6 @@ pygame.display.set_caption("Game")
 # Images
 bg_img               = pygame.image.load("m1.png")
 bg_mask_img          = pygame.image.load("m1_mask.png")
-bg2_img              = pygame.image.load("bg.png")
 player_img           = pygame.image.load("player.png")
 npc1_img             = pygame.image.load("npc1.png")
 icon1_img            = pygame.image.load("icon1.png")
@@ -30,6 +29,7 @@ player_pos_x = 312
 player_pos_y = 44
 player_speed = 4
 player_score = 150
+player_pscor = None
 player_live  = 3
 
 # Game
@@ -87,24 +87,19 @@ class npc_class:                                                   # npc_class
                 s_str = s_str[1:]
         else:
             s_str = str(self.s)
-        if(self.new):
+        if(nr or self.new):
             st = font.render(str(s_str), True, (0, 100, 0))
-            self.text_simg = pygame.transform.scale(st, (round(8*(st.get_rect().size[0]/st.get_rect().size[1])*(display_size[1]/600)), round(8*(display_size[1]/600))))
+            if(display_size[1]>600):
+                self.text_simg = pygame.transform.scale(st, (round(8*(st.get_rect().size[0]/st.get_rect().size[1])*(display_size[1]/600)), round(8*(display_size[1]/600))))
+            else:
+                self.text_simg = pygame.transform.scale(st, (round(8*(st.get_rect().size[0]/st.get_rect().size[1])*(display_size[1]/300)), round(8*(display_size[1]/300))))
             self.npc_simg = pygame.transform.scale(npc1_img, (round(16*(display_size[1]/600)), round(16*(display_size[1]/600))))
             self.new = False
-
-        #pygame.mouse.get_pos())
-        # (round((display_size[0]//2)-(round(640*(display_size[1]/600))//2)+(pygame.mouse.get_pos()[0]/(display_size[1]/600))), round(pygame.mouse.get_pos()[1]/(display_size[1]/600)))
-        if(nr):
-            st = font.render(str(s_str), True, (0, 100, 0))
-            self.text_simg = pygame.transform.scale(st, (round(8*(st.get_rect().size[0]/st.get_rect().size[1])*(display_size[1]/600)), round(8*(display_size[1]/600))))
-            self.npc_simg = pygame.transform.scale(npc1_img, (round(16*(display_size[1]/600)), round(16*(display_size[1]/600))))
-
-        if(True): #mouse_mask.overlap(npc_mask, (self.pos_x-round(pygame.mouse.get_pos()[0]/(display_size[0]/640)), self.pos_y-round(pygame.mouse.get_pos()[1]/(display_size[1]/600))))):
-            screen.blit(self.text_simg, ((round((display_size[0]//2)-(round(640*(display_size[1]/600))//2)+(self.pos_x*(display_size[1]/600)))), round((self.pos_y-8)*(display_size[1]/600))))
-
         screen.blit(self.npc_simg, (round((display_size[0]//2)-(round(640*(display_size[1]/600))//2)+(self.pos_x*(display_size[1]/600))), round(self.pos_y*(display_size[1]/600))))
-        #screen.blit(st, (self.pos_x, self.pos_y-10))
+        if(display_size[1]>600):
+            screen.blit(self.text_simg, ((round((display_size[0]//2)-(round(640*(display_size[1]/600))//2)+(self.pos_x*(display_size[1]/600)))), round((self.pos_y-8)*(display_size[1]/600))))
+        else:
+            screen.blit(self.text_simg, ((round((display_size[0]//2)-(round(650*(display_size[1]/600))//2)+(self.pos_x*(display_size[1]/600)))), round((self.pos_y-8)*(display_size[1]/600))))
     def dead(self):
         global npc_count
         dnpcs.append(self)
@@ -131,9 +126,31 @@ for a in range(20):
 for a in npcs:
     a.setup()
 #=======================================================================================================
+# Render Background
+bg2_list = []
+for a in range(random.randint(1000, 3000)):
+    bg2_list.append((random.randint(0, 639), random.randint(0, 1279)))
+def bg2_pixel(pixel):
+    if(pixel[0] in range(0, display_size[0]) and pixel[1] in range(0, display_size[1])):
+        screen.fill((0xff, 0xff, 0xff), ((pixel[0], pixel[1]), (1, 1)))
+def render_bg2(nr, bg2_count):
+    global bg2_s
+    if(nr):
+        bg2_s = ((display_size[0]/640), (display_size[1]/600))
+    offs1 = (0, round((bg2_count-1280)*(display_size[1]/600)))
+    offs2 = (0, round((bg2_count)*(display_size[1]/600)))
+    for a in bg2_list:
+        pixel1 = (round((a[0]*bg2_s[0])+offs2[0]), round((a[1]*bg2_s[1])+offs2[1]))
+        pixel2 = (round((a[0]*bg2_s[0])+offs1[0]), round((a[1]*bg2_s[1])+offs1[1]))
+        bg2_pixel(pixel1)
+        bg2_pixel(pixel2)
+
+
+
+#========================================================================================================
 bg2_count = 0
 def dg(keys, fps):                                                     # Game
-    global player_pos_x, player_pos_y, bg2_count, dnpcs, game_over, player_live, game_win, player_score, pdsize, bg2_simg, bg_simg, icon1_simg, icon2_simg, icon3_simg, nr
+    global player_pos_x, player_pos_y, bg2_count, dnpcs, game_over, player_live, game_win, player_score, pdsize, bg2_simg, bg_simg, icon1_simg, icon2_simg, icon3_simg, nr, player_pscor, player_simg, player_score_texts
     pygame.display.set_caption("Game  "+str(round(fps))+" FPS")
 
     if(player_score<100):
@@ -179,7 +196,6 @@ def dg(keys, fps):                                                     # Game
     if(display_size!=pdsize):
         pdsize = display_size
         nr = True
-        bg2_simg   = pygame.transform.scale(bg2_img, (round(640*(display_size[0]/640)), round(1280*(display_size[1]/600))))
         bg_simg    = pygame.transform.scale(bg_img, (round(640*(display_size[1]/600)), round(640*(display_size[1]/600))))
         icon1_simg = pygame.transform.scale(icon1_img, (round(16*(display_size[1]/600)), round(16*(display_size[1]/600))))
         icon2_simg = pygame.transform.scale(icon2_img, (round(16*(display_size[1]/600)), round(16*(display_size[1]/600))))
@@ -187,9 +203,9 @@ def dg(keys, fps):                                                     # Game
     else:
         nr = False
 
-   # screen.blit(bg2_simg, (0, round((bg2_count-1280)*(display_size[1]/600))))
-   # screen.blit(bg2_simg, (0, round((bg2_count)*(display_size[1]/600))))                              # Background2 Image
-    screen.blit(bg_simg, ((display_size[0]//2)-(round(640*(display_size[1]/600))//2), 0))                                        # Background_Image
+
+    render_bg2(nr, bg2_count)                                                                                                     # Background2 Image
+    screen.blit(bg_simg, ((display_size[0]//2)-(round(640*(display_size[1]/600))//2), 0))                                         # Background_Image
     screen.blit(icon1_simg, (round(10*(display_size[1]/600)), round(570*(display_size[1]/600))))                                  # Icon1_Image
     screen.blit(icon2_simg, (round(50*(display_size[1]/600)), round(572*(display_size[1]/600))))                                  # Icon2_Image
     screen.blit(icon3_simg, (round(110*(display_size[1]/600)), round(570*(display_size[1]/600))))
@@ -217,12 +233,24 @@ def dg(keys, fps):                                                     # Game
     screen.blit(pygame.transform.scale(npc_count_text,    (round(16*(npc_count_text.get_rect().size[0]   /npc_count_text.get_rect().size[1]   )*(display_size[1]/600)), round(16*(display_size[1]/600)))), (round(70*(display_size[1]/600)),  round(573*(display_size[1]/600))))
     screen.blit(pygame.transform.scale(player_score_text, (round(16*(player_score_text.get_rect().size[0]/player_score_text.get_rect().size[1])*(display_size[1]/600)), round(16*(display_size[1]/600)))), (round(130*(display_size[1]/600)), round(573*(display_size[1]/600))))
 
-    screen.blit(pygame.transform.scale(player_img, (round(16*(display_size[1]/600)), round(16*(display_size[1]/600)))), (round((display_size[0]//2)-(round(640*(display_size[1]/600))//2)+(player_pos_x*(display_size[1]/600))), round(player_pos_y*(display_size[1]/600))))              # Player_Image
+                  # Player_Image
 
-
+    if(nr or player_score!=player_pscor):
+        player_score_text = font.render(player_score_str, True, (100, 0, 0))
+        if(display_size[1]>600):
+            player_score_texts = pygame.transform.scale(player_score_text, (round(8*(player_score_text.get_rect().size[0]/player_score_text.get_rect().size[1])*(display_size[1]/600)), round(8*(display_size[1]/600))))
+        else:
+            player_score_texts = pygame.transform.scale(player_score_text, (round(8*(player_score_text.get_rect().size[0]/player_score_text.get_rect().size[1])*(display_size[1]/300)), round(8*(display_size[1]/300))))
+        player_simg = pygame.transform.scale(player_img, (round(16*(display_size[1]/600)), round(16*(display_size[1]/600))))
+        player_pscor = player_score
+    screen.blit(player_simg, (round((display_size[0]//2)-(round(640*(display_size[1]/600))//2)+(player_pos_x*(display_size[1]/600))), round(player_pos_y*(display_size[1]/600))))
+    if(display_size[1]>600):
+        screen.blit(player_score_texts, ((round((display_size[0]//2)-(round(640*(display_size[1]/600))//2)+(player_pos_x*(display_size[1]/600)))), round((player_pos_y-8)*(display_size[1]/600))))
+    else:
+        screen.blit(player_score_texts, ((round((display_size[0]//2)-(round(650*(display_size[1]/600))//2)+(player_pos_x*(display_size[1]/600)))), round((player_pos_y-8)*(display_size[1]/600))))
                                                                            # Player_Text
-    player_score_text = font.render(player_score_str, True, (100, 0, 0))
-    screen.blit(pygame.transform.scale(player_score_text, (round(8*(player_score_text.get_rect().size[0]/player_score_text.get_rect().size[1])*(display_size[1]/600)), round(8*(display_size[1]/600)))), ((round((display_size[0]//2)-(round(640*(display_size[1]/600))//2)+(player_pos_x*(display_size[1]/600)))), round((player_pos_y-8)*(display_size[1]/600))))
+
+
 
     for a in npcs:                                                     # dnpcs
         a.update()
