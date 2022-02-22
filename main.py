@@ -4,10 +4,10 @@ import cProfile
 pygame.init()
 pygame.mixer.init()
 
-screen = pygame.display.set_mode((1440, 810), pygame.RESIZABLE)
+screen = pygame.display.set_mode((1440, 810), pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWACCEL)
 display_size = screen.get_size()
 pdsize = None
-nr = True
+new_render = True
 pygame.display.set_caption("Game")
 
 # Images
@@ -87,7 +87,7 @@ class npc_class:                                                   # npc_class
                 s_str = s_str[1:]
         else:
             s_str = str(self.s)
-        if(nr or self.new):
+        if(new_render or self.new):
             st = font.render(str(s_str), True, (0, 100, 0))
             if(display_size[1]>600):
                 self.text_simg = pygame.transform.scale(st, (round(8*(st.get_rect().size[0]/st.get_rect().size[1])*(display_size[1]/600)), round(8*(display_size[1]/600))))
@@ -127,30 +127,32 @@ for a in npcs:
     a.setup()
 #=======================================================================================================
 # Render Background
-bg2_list = []
-for a in range(random.randint(1000, 3000)):
-    bg2_list.append((random.randint(0, 639), random.randint(0, 1279)))
-def bg2_pixel(pixel):
-    if(pixel[0] in range(0, display_size[0]) and pixel[1] in range(0, display_size[1])):
-        screen.fill((0xff, 0xff, 0xff), ((pixel[0], pixel[1]), (1, 1)))
-def render_bg2(nr, bg2_count):
-    global bg2_s
-    if(nr):
-        bg2_s = ((display_size[0]/640), (display_size[1]/600))
-    offs1 = (0, round((bg2_count-1280)*(display_size[1]/600)))
-    offs2 = (0, round((bg2_count)*(display_size[1]/600)))
-    for a in bg2_list:
-        pixel1 = (round((a[0]*bg2_s[0])+offs2[0]), round((a[1]*bg2_s[1])+offs2[1]))
-        pixel2 = (round((a[0]*bg2_s[0])+offs1[0]), round((a[1]*bg2_s[1])+offs1[1]))
-        bg2_pixel(pixel1)
-        bg2_pixel(pixel2)
 
+
+def render_background(newRender):
+    if(render_background.offset>display_size[1]):
+        render_background.offset = 0
+    global bgimg
+    if(newRender):
+        newBackgroundImage()
+    screen.blit(bgimg, (0,0), ((0, display_size[1] - render_background.offset), display_size))
+    render_background.offset += 5
+render_background.offset=0
+
+def newBackgroundImage():
+    star_list = []
+    global bgimg
+    for a in range(random.randint(1000, 3000)):
+        star_list.append((random.randint(0, display_size[0]-1), random.randint(0, display_size[1]-1)))
+    bgimg = pygame.Surface((display_size[0],2*display_size[1]))
+    for a in star_list:
+        bgimg.fill((0xff,0xff,0xff),((a[0],a[1]),(1,1)))
+        bgimg.fill((0xff,0xff,0xff),((a[0],display_size[1]+a[1]),(1,1)))
 
 
 #========================================================================================================
-bg2_count = 0
 def dg(keys, fps):                                                     # Game
-    global player_pos_x, player_pos_y, bg2_count, dnpcs, game_over, player_live, game_win, player_score, pdsize, bg2_simg, bg_simg, icon1_simg, icon2_simg, icon3_simg, nr, player_pscor, player_simg, player_score_texts
+    global player_pos_x, player_pos_y, dnpcs, game_over, player_live, game_win, player_score, pdsize, bg2_simg, bg_simg, icon1_simg, icon2_simg, icon3_simg, new_render, player_pscor, player_simg, player_score_texts
     pygame.display.set_caption("Game  "+str(round(fps))+" FPS")
 
     if(player_score<100):
@@ -187,24 +189,20 @@ def dg(keys, fps):                                                     # Game
             if(inw()):
                 player_pos_x -= player_speed
 
-
-    bg2_count += 5
-    if(bg2_count>1280):
-        bg2_count = 0
     screen.fill((0, 0, 0))
 
     if(display_size!=pdsize):
         pdsize = display_size
-        nr = True
+        new_render = True
         bg_simg    = pygame.transform.scale(bg_img, (round(640*(display_size[1]/600)), round(640*(display_size[1]/600))))
         icon1_simg = pygame.transform.scale(icon1_img, (round(16*(display_size[1]/600)), round(16*(display_size[1]/600))))
         icon2_simg = pygame.transform.scale(icon2_img, (round(16*(display_size[1]/600)), round(16*(display_size[1]/600))))
         icon3_simg = pygame.transform.scale(icon3_img, (round(16*(display_size[1]/600)), round(16*(display_size[1]/600))))
     else:
-        nr = False
+        new_render = False
 
 
-    render_bg2(nr, bg2_count)                                                                                                     # Background2 Image
+    render_background(new_render)                                                                                                     # Background2 Image
     screen.blit(bg_simg, ((display_size[0]//2)-(round(640*(display_size[1]/600))//2), 0))                                         # Background_Image
     screen.blit(icon1_simg, (round(10*(display_size[1]/600)), round(570*(display_size[1]/600))))                                  # Icon1_Image
     screen.blit(icon2_simg, (round(50*(display_size[1]/600)), round(572*(display_size[1]/600))))                                  # Icon2_Image
@@ -235,7 +233,7 @@ def dg(keys, fps):                                                     # Game
 
                   # Player_Image
 
-    if(nr or player_score!=player_pscor):
+    if(new_render or player_score!=player_pscor):
         player_score_text = font.render(player_score_str, True, (100, 0, 0))
         if(display_size[1]>600):
             player_score_texts = pygame.transform.scale(player_score_text, (round(8*(player_score_text.get_rect().size[0]/player_score_text.get_rect().size[1])*(display_size[1]/600)), round(8*(display_size[1]/600))))
