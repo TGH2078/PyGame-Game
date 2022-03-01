@@ -42,6 +42,7 @@ game_over    = False
 font         = pygame.font.SysFont(None, 24)
 fontm        = pygame.font.SysFont("monospace", 12)
 fontb        = pygame.font.SysFont("monospace", 40)
+redc         = 0
 
 screen_items = {"ui_help":False, "fps":True, "render_background":True}
 
@@ -115,7 +116,7 @@ class npc_class:                                                   # npc_class
             npcs.append(npc_class(random.randint(190, 430), random.randint(120, 460), random.randint(player_score//2, player_score*2)))
             npcs[-1].setup()
     def update(self):
-        global player_score, player_live
+        global player_score, player_live, redc
         if(player_mask.overlap(npc_mask, (self.pos_x-player_pos_x, self.pos_y-player_pos_y))!=None):
             self.dead()
             if(self.s<=player_score):
@@ -123,6 +124,7 @@ class npc_class:                                                   # npc_class
             else:
                 player_live -= 1
                 player_score -= self.s//10
+                redc = 10
         self.render()
 
                                                                         # Generate NPCS
@@ -340,7 +342,9 @@ while(run):
     screent.blit(pygame.transform.scale(screen, (display_size[0]*2, display_size[1]*2)), (0-round((player_pos_x/600)*display_size[1]), 0-round((player_pos_y/600)*display_size[1])))
     #uscreen.set_alpha(70)
     screent.blit(uscreen, (0, 0))
-    uscreen.fill((0, 0, 0, 0))
+    uscreen.fill((255, 0, 0, redc*25))
+    if(redc>0):
+        redc -= 1
     pygame.display.flip()
     clock.tick(game_fps)
 pygame.quit()
