@@ -5,8 +5,11 @@ pygame.init()
 infoobject = pygame.display.Info()
 pygame.mixer.init()
 
-screen = pygame.display.set_mode((1440, 810), pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWACCEL)
+screent = pygame.display.set_mode((1440, 810), pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWACCEL)
+screen  = pygame.Surface((1440, 810))
+uscreen = pygame.Surface((1440, 810), pygame.SRCALPHA)
 display_size = screen.get_size()
+oisplay_size = display_size
 pdsize = None
 new_render = True
 pygame.display.set_caption("Game")
@@ -208,9 +211,9 @@ def dg(keys, fps):                                                     # Game
     if(screen_items["render_background"]):
         render_background(new_render)                                                                                                     # Background2 Image
     screen.blit(bg_simg, ((display_size[0]//2)-(round(640*(display_size[1]/600))//2), 0))                                         # Background_Image
-    screen.blit(icon1_simg, (round(10*(display_size[1]/600)), round(570*(display_size[1]/600))))                                  # Icon1_Image
-    screen.blit(icon2_simg, (round(50*(display_size[1]/600)), round(572*(display_size[1]/600))))                                  # Icon2_Image
-    screen.blit(icon3_simg, (round(110*(display_size[1]/600)), round(570*(display_size[1]/600))))
+    uscreen.blit(icon1_simg, (round(10*(display_size[1]/600)), round(570*(display_size[1]/600))))                                  # Icon1_Image
+    uscreen.blit(icon2_simg, (round(50*(display_size[1]/600)), round(572*(display_size[1]/600))))                                  # Icon2_Image
+    uscreen.blit(icon3_simg, (round(110*(display_size[1]/600)), round(570*(display_size[1]/600))))
 
     if(len(str(player_score))>3):
         count = 0
@@ -231,9 +234,9 @@ def dg(keys, fps):                                                     # Game
     npc_count_text    = font.render(str(npc_count),   True, (255, 255, 0))
     player_score_text = font.render(player_score_str, True, (0, 255, 0))
     # .get_rect().size
-    screen.blit(pygame.transform.scale(player_live_text,  (round(16*(player_live_text.get_rect().size[0] /player_live_text.get_rect().size[1] )*(display_size[1]/600)), round(16*(display_size[1]/600)))), (round(30*(display_size[1]/600)),  round(573*(display_size[1]/600))))
-    screen.blit(pygame.transform.scale(npc_count_text,    (round(16*(npc_count_text.get_rect().size[0]   /npc_count_text.get_rect().size[1]   )*(display_size[1]/600)), round(16*(display_size[1]/600)))), (round(70*(display_size[1]/600)),  round(573*(display_size[1]/600))))
-    screen.blit(pygame.transform.scale(player_score_text, (round(16*(player_score_text.get_rect().size[0]/player_score_text.get_rect().size[1])*(display_size[1]/600)), round(16*(display_size[1]/600)))), (round(130*(display_size[1]/600)), round(573*(display_size[1]/600))))
+    uscreen.blit(pygame.transform.scale(player_live_text,  (round(16*(player_live_text.get_rect().size[0] /player_live_text.get_rect().size[1] )*(display_size[1]/600)), round(16*(display_size[1]/600)))), (round(30*(display_size[1]/600)),  round(573*(display_size[1]/600))))
+    uscreen.blit(pygame.transform.scale(npc_count_text,    (round(16*(npc_count_text.get_rect().size[0]   /npc_count_text.get_rect().size[1]   )*(display_size[1]/600)), round(16*(display_size[1]/600)))), (round(70*(display_size[1]/600)),  round(573*(display_size[1]/600))))
+    uscreen.blit(pygame.transform.scale(player_score_text, (round(16*(player_score_text.get_rect().size[0]/player_score_text.get_rect().size[1])*(display_size[1]/600)), round(16*(display_size[1]/600)))), (round(130*(display_size[1]/600)), round(573*(display_size[1]/600))))
 
                   # Player_Image
 
@@ -263,13 +266,13 @@ def dg(keys, fps):                                                     # Game
 
 #    print("\033[1A", player_pos_x, ", ", player_pos_y, "            ") # Print player_pos
     if(screen_items["ui_help"]):
-        screen.blit(fontm.render("------[ Help ]------", True, (100, 255, 100)), (1, 12*1))
-        screen.blit(fontm.render("Show FPS         : F", True, (100, 255, 100)), (1, 12*2))
-        screen.blit(fontm.render("Show Help        : H", True, (100, 255, 100)), (1, 12*3))
-        screen.blit(fontm.render("Render Background: B", True, (100, 255, 100)), (1, 12*4))
-        screen.blit(fontm.render("Fullscreen       : F11", True, (100, 255, 100)), (1, 12*5))
+        uscreen.blit(fontm.render("------[ Help ]------", True, (100, 255, 100)), (1, 12*1))
+        uscreen.blit(fontm.render("Show FPS         : F", True, (100, 255, 100)), (1, 12*2))
+        uscreen.blit(fontm.render("Show Help        : H", True, (100, 255, 100)), (1, 12*3))
+        uscreen.blit(fontm.render("Render Background: B", True, (100, 255, 100)), (1, 12*4))
+        uscreen.blit(fontm.render("Fullscreen       : F11", True, (100, 255, 100)), (1, 12*5))
     if(screen_items["fps"]):
-        screen.blit(fontm.render(f"{round(fps)} FPS", True, (255, 100, 100)), (1, 1))
+        uscreen.blit(fontm.render(f"{round(fps)} FPS", True, (255, 100, 100)), (1, 1))
 #-------------------------------------------------------------------------------------------------------------------------------------------------------
 def toggle(i):
     if(i==True):
@@ -282,7 +285,12 @@ run = True
 clock = pygame.time.Clock()
 keys = {"key_up":False, "key_down":False, "key_left":False, "key_right":False}
 while(run):
-    display_size = screen.get_size()
+    display_size = screent.get_size()
+    if(display_size!=oisplay_size):
+        screen  = pygame.Surface(display_size)
+        uscreen = pygame.Surface(display_size, pygame.SRCALPHA)
+        oisplay_size = display_size
+
     for e in pygame.event.get():
         if(e.type==pygame.QUIT):
             run = False
@@ -320,15 +328,19 @@ while(run):
     if(game_over):
         text = fontb.render("Game Over", True, (200, 100, 0))
         text_img = pygame.transform.scale(text, (round(64*(text.get_rect().size[0]/text.get_rect().size[1])*(display_size[1]/600)), round(64*(display_size[1]/600))))
-        screen.blit(text_img, ((display_size[0]//2) - (text_img.get_rect().size[0]//2), (display_size[1]//6)))
+        uscreen.blit(text_img, ((display_size[0]//2) - (text_img.get_rect().size[0]//2), (display_size[1]//6)))
         if(game_win):
             text = fontb.render("You Win", True, (0, 200, 150))
             text_img = pygame.transform.scale(text, (round(32*(text.get_rect().size[0]/text.get_rect().size[1])*(display_size[1]/600)), round(32*(display_size[1]/600))))
-            screen.blit(text_img, ((display_size[0]//2) - (text_img.get_rect().size[0]//2), (display_size[1]//4)))
+            uscreen.blit(text_img, ((display_size[0]//2) - (text_img.get_rect().size[0]//2), (display_size[1]//4)))
         else:
             text = fontb.render("You Lose", True, (100, 0, 0))
             text_img = pygame.transform.scale(text, (round(32*(text.get_rect().size[0]/text.get_rect().size[1])*(display_size[1]/600)), round(32*(display_size[1]/600))))
-            screen.blit(text_img, ((display_size[0]//2) - (text_img.get_rect().size[0]//2), (display_size[1]//4)))
+            uscreen.blit(text_img, ((display_size[0]//2) - (text_img.get_rect().size[0]//2), (display_size[1]//4)))
+    screent.blit(pygame.transform.scale(screen, (display_size[0]*2, display_size[1]*2)), (0-round((player_pos_x/600)*display_size[1]), 0-round((player_pos_y/600)*display_size[1])))
+    #uscreen.set_alpha(70)
+    screent.blit(uscreen, (0, 0))
+    uscreen.fill((0, 0, 0, 0))
     pygame.display.flip()
     clock.tick(game_fps)
 pygame.quit()
