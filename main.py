@@ -2,6 +2,7 @@ import pygame
 import random
 import cProfile
 pygame.init()
+infoobject = pygame.display.Info()
 pygame.mixer.init()
 
 screen = pygame.display.set_mode((1440, 810), pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWACCEL)
@@ -36,7 +37,10 @@ player_live  = 3
 game_fps     = 30
 game_over    = False
 font         = pygame.font.SysFont(None, 24)
+fontm        = pygame.font.SysFont("monospace", 12)
 fontb        = pygame.font.SysFont("monospace", 40)
+
+screen_items = {"ui_help":False, "fps":True, "render_background":True}
 
 # Masks
 player_mask   = pygame.mask.from_surface(player_img)
@@ -201,8 +205,8 @@ def dg(keys, fps):                                                     # Game
     else:
         new_render = False
 
-
-    render_background(new_render)                                                                                                     # Background2 Image
+    if(screen_items["render_background"]):
+        render_background(new_render)                                                                                                     # Background2 Image
     screen.blit(bg_simg, ((display_size[0]//2)-(round(640*(display_size[1]/600))//2), 0))                                         # Background_Image
     screen.blit(icon1_simg, (round(10*(display_size[1]/600)), round(570*(display_size[1]/600))))                                  # Icon1_Image
     screen.blit(icon2_simg, (round(50*(display_size[1]/600)), round(572*(display_size[1]/600))))                                  # Icon2_Image
@@ -258,6 +262,21 @@ def dg(keys, fps):                                                     # Game
 #    print(pygame.mouse.get_pos())
 
 #    print("\033[1A", player_pos_x, ", ", player_pos_y, "            ") # Print player_pos
+    if(screen_items["ui_help"]):
+        screen.blit(fontm.render("------[ Help ]------", True, (100, 255, 100)), (1, 12*1))
+        screen.blit(fontm.render("Show FPS         : F", True, (100, 255, 100)), (1, 12*2))
+        screen.blit(fontm.render("Show Help        : H", True, (100, 255, 100)), (1, 12*3))
+        screen.blit(fontm.render("Render Background: B", True, (100, 255, 100)), (1, 12*4))
+        screen.blit(fontm.render("Fullscreen       : F11", True, (100, 255, 100)), (1, 12*5))
+    if(screen_items["fps"]):
+        screen.blit(fontm.render(f"{round(fps)} FPS", True, (255, 100, 100)), (1, 1))
+#-------------------------------------------------------------------------------------------------------------------------------------------------------
+def toggle(i):
+    if(i==True):
+        i = False
+    elif(i==False):
+        i = True
+    return(i)
 
 run = True
 clock = pygame.time.Clock()
@@ -278,6 +297,15 @@ while(run):
                 keys["key_right"] = True
             elif(e.key==pygame.K_q):
                 run = False
+            elif(e.key==pygame.K_h):
+                screen_items["ui_help"] = toggle(screen_items["ui_help"])
+            elif(e.key==pygame.K_f):
+                screen_items["fps"] = toggle(screen_items["fps"])
+            elif(e.key==pygame.K_b):
+                screen_items["render_background"] = toggle(screen_items["render_background"])
+                newBackgroundImage()
+            elif(e.key==pygame.K_F11):
+                pygame.display.set_mode((infoobject.current_w, infoobject.current_h), pygame.FULLSCREEN)
         elif(e.type==pygame.KEYUP):
             if(e.key in (pygame.K_UP, pygame.K_w)):
                 keys["key_up"] = False
